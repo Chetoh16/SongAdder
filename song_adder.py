@@ -2,12 +2,12 @@ import os
 # Imports the os module to interact with the operating system. Specifically, os is used to generate a secret key for Flask.
 
 from dotenv import find_dotenv, load_dotenv
-
 dotenv_path = find_dotenv()
-
 client_secret = os.getenv("client_secret")
-
 load_dotenv(dotenv_path)
+# Rather than hardcoding the client secret and therefore giving away my precious code (which would bite me in the ass later if i were to publish this code)
+# I created environmental variables and stored my client secret there
+# I also gitignored that .env file so it doesn't show up in the repository
 
 from spotipy.oauth2 import SpotifyClientCredentials
 # Imports SpotifyClientCredentials from the spotipy.oauth2 module to authenticate the app using client credentials (for requests that don’t require user data).
