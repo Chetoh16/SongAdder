@@ -156,7 +156,7 @@ def callback():
 
 
 
-
+#for logging out
 @app.route('/logout')
 def logout():
     session.clear()
