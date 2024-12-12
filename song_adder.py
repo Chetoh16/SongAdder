@@ -1,6 +1,14 @@
 import os
 # Imports the os module to interact with the operating system. Specifically, os is used to generate a secret key for Flask.
 
+from dotenv import find_dotenv, load_dotenv
+
+dotenv_path = find_dotenv()
+
+client_secret = os.getenv("client_secret")
+
+load_dotenv(dotenv_path)
+
 from spotipy.oauth2 import SpotifyClientCredentials
 # Imports SpotifyClientCredentials from the spotipy.oauth2 module to authenticate the app using client credentials (for requests that don’t require user data).
 import sys
@@ -39,7 +47,6 @@ app.config['SECRET_KEY'] = os.urandom(64)
 
 # Variables needed by spotipy
 client_id = 'b1ef72a13ae5420da33242a3ac9a23cb'
-client_secret = '3eb65dbece034b4bb0931c936e172e0e'
 redirect_uri = 'http://localhost:5000/callback'
 scope = 'playlist-read-private playlist-modify-private playlist-modify-public user-read-recently-played user-read-playback-state'
 
