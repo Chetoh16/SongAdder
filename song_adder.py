@@ -1,6 +1,7 @@
 import os
 # Imports the os module to interact with the operating system. Specifically, os is used to generate a secret key for Flask.
 
+
 from dotenv import find_dotenv, load_dotenv
 dotenv_path = find_dotenv()
 client_secret = os.getenv("client_secret")
@@ -20,7 +21,7 @@ import re
 # Imports re, Python’s regular expression library, to work with pattern matching, used later in the script to extract the playlist ID from a URL.
 
 
-from flask import Flask, request, redirect, session, url_for, render_template_string
+from flask import Flask, request, redirect, session, url_for, render_template_string, render_template, jsonify   
 # A session is just a place for our web server in this case flask to be able to access the data inside
 # Imports several utilities from the Flask web framework:
 # Flask is used to create a web server.
@@ -113,28 +114,51 @@ def process_playlist():
     # Calls the search_and_add_songs_to_playlist() function to search for songs and add them to the specified playlist.
     
     # Return the feedback with all songs added, not found, and skipped
-    return render_template_string("""
-        <h1>Song Processing Feedback</h1>
-        <h3>Added to Playlist:</h3>
-        <ul>
-            {% for track in added_tracks %}
-                <li>{{ track | safe }}</li>  <!-- Use 'safe' to render the HTML link correctly -->
-            {% endfor %}
-        </ul>
-        <h3>Could Not Be Found:</h3>
-        <ul>
-            {% for track in not_found_tracks %}
-                <li>{{ track }}</li>
-            {% endfor %}
-        </ul>
-        <h3>Skipped Songs:</h3>
-        <ul>
-            {% for track in skipped_tracks %}
-                <li>{{ track }}</li>
-            {% endfor %}
-        </ul>
-    """, added_tracks=tracks_info['added'], not_found_tracks=tracks_info['not_found'], skipped_tracks=tracks_info['skipped'])
+    # return render_template_string("""
+    #     <h1>Song Processing Feedback</h1>
+    #     <h3>Added to Playlist:</h3>
+    #     <ul>
+    #         {% for track in added_tracks %}
+    #             <li>{{ track | safe }}</li>  <!-- Use 'safe' to render the HTML link correctly -->
+    #         {% endfor %}
+    #     </ul>
+    #     <h3>Could Not Be Found:</h3>
+    #     <ul>
+    #         {% for track in not_found_tracks %}
+    #             <li>{{ track }}</li>
+    #         {% endfor %}
+    #     </ul>
+    #     <h3>Skipped Songs:</h3>
+    #     <ul>
+    #         {% for track in skipped_tracks %}
+    #             <li>{{ track }}</li>
+    #         {% endfor %}
+    #     </ul>
+    # """, added_tracks=tracks_info['added'], not_found_tracks=tracks_info['not_found'], skipped_tracks=tracks_info['skipped'])
     # Renders a feedback page displaying the results of the song processing: tracks added, tracks not found, and tracks skipped
+    return render_template(
+        'home.html',  # The template file
+        added_tracks=tracks_info['added'],  # List of added tracks
+        not_found_tracks=tracks_info['not_found'],  # List of not found tracks
+        skipped_tracks=tracks_info['skipped']  # List of skipped tracks
+    )
+
+@app.route('/songs')
+def songs():
+    tracks_info = {
+        'added': ['Song 1', 'Song 2', 'Song 3'],
+        'not_found': ['Song A', 'Song B'],
+        'skipped': ['Song X', 'Song Y', 'Song Z']
+    }
+
+    # Render the external HTML template
+    return render_template(
+        'templates/home.html', 
+        added_tracks=tracks_info['added'], 
+        not_found_tracks=tracks_info['not_found'], 
+        skipped_tracks=tracks_info['skipped']
+    )
+
 
 def extract_playlist_id(url):
     # A helper function that uses regular expressions (re.search) to extract the playlist ID from the given Spotify URL.
@@ -160,15 +184,25 @@ def search_and_add_songs_to_playlist(playlist_id):
     added_uris = set()
     # Empty set to store the URIs of tracks that have already been added to the playlist. Sets are used here to prevent duplicates since they do not allow repeated values.
 
-
+    added_artists = set()
+    # Empty set to store the artists of tracks that have already been added to the playlist.
+    
     # Get existing tracks in the playlist
     playlist_tracks = sp.playlist_tracks(playlist_id)
     # Uses Spotipy sp.playlist_tracks() method to get the tracks in the specified playlist (using the playlist_id). This returns a dictionary that includes information about the tracks in the playlist.
 
     for item in playlist_tracks['items']:
+        track = item['track']
         added_uris.add(item['track']['uri'])
         # Iterates over each track item in the playlist_tracks['items'] list, where each item is a dictionary containing information about a track in the playlist.
         # For each track item, the uri (a unique identifier for the track in Spotify) is added to the added_uris set. This will help later to check if a track is already in the playlist.
+        
+        #---------NEW----------#
+        for artist in track['artists']:
+            added_artists.add(artist['name'])  # Store existing artist names
+        #---------NEW----------#
+        
+
 
     with open('list_of_songs.txt', 'r') as file:
     # Opens the file list_of_songs.txt in read mode. This file is expected to contain a list of song names (one per line). The with statement ensures that the file is properly closed after reading.
@@ -200,6 +234,11 @@ def search_and_add_songs_to_playlist(playlist_id):
                 # Checks if the track's URI is already in the added_uris set, which means this track has already been added to the playlist
                     skipped_tracks.add(f"{track_name} by {artist_name}")
                     # If the track is already in the playlist, the song is skipped. The song's name and artist are added to the skipped_tracks set.
+                
+                #---------NEW----------#
+                elif any(artist['name'] in added_artists for artist in track['artists']):
+                    skipped_tracks.add(f"{track_name} by {artist_name} (Artist already in playlist)")
+                #---------NEW----------#
                 else:
                     sp.playlist_add_items(playlist_id=playlist_id, items=[track_uri])
                     # If the track is not already in the playlist, the sp.playlist_add_items() method is used to add the track to the playlist. 
@@ -208,7 +247,11 @@ def search_and_add_songs_to_playlist(playlist_id):
                     # Adds the track to the added_tracks list. The track name is wrapped in an HTML anchor (<a>) tag, linking to the track's Spotify page.
                     added_uris.add(track_uri)
                     # Adds the track’s URI to the added_uris set to track that it has been added to the playlist.
-
+                    
+                    #---------NEW----------#
+                    for artist in track['artists']:
+                        added_artists.add(artist['name'])  # Add new artist to set
+                    #---------NEW----------#
             else:
                 # Track not found
                 not_found_tracks.append(query)

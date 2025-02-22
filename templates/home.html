@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Song Processing Feedback</h1>
+    <h3>Added to Playlist:</h3>
+    <ul>
+        {% for track in added_tracks %}
+            <li>{{ track | safe }}</li>  <!-- Use 'safe' to render the HTML link correctly -->
+        {% endfor %}
+    </ul>
+    <h3>Could Not Be Found:</h3>
+    <ul>
+        {% for track in not_found_tracks %}
+            <li>{{ track }}</li>
+        {% endfor %}
+    </ul>
+    <h3>Skipped Songs:</h3>
+    <ul>
+        {% for track in skipped_tracks %}
+            <li>{{ track }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
