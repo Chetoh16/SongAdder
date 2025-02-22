@@ -4,8 +4,10 @@ import os
 
 from dotenv import find_dotenv, load_dotenv
 dotenv_path = find_dotenv()
-client_secret = os.getenv("client_secret")
 load_dotenv(dotenv_path)
+client_secret = os.getenv("client_secret")
+client_id = os.getenv("client_id")
+
 # Rather than hardcoding the client secret and therefore giving away my precious code (which would bite me in the ass later if i were to publish this code)
 # I created environmental variables and stored my client secret there
 # I also gitignored that .env file so it doesn't show up in the repository
@@ -47,7 +49,6 @@ app.config['SECRET_KEY'] = os.urandom(64)
 # Sets a secret key for the Flask app, which is used to sign session cookies for security. The key is randomly generated.
 
 # Variables needed by spotipy
-client_id = 'b1ef72a13ae5420da33242a3ac9a23cb'
 redirect_uri = 'http://localhost:5000/callback'
 scope = 'playlist-read-private playlist-modify-private playlist-modify-public user-read-recently-played user-read-playback-state'
 
