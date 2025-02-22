@@ -70,7 +70,7 @@ sp = Spotify(oauth_manager=sp_oauth)
 # Creates a Spotify object (sp) that will be used to make requests to the Spotify API using the authentication manager (sp_oauth).
 # Call methods on to get data
 
-@app.route('/')
+@app.route("/", methods=["GET", "POST"])
 # Defines the route for the homepage (/). The home() function handles requests to this route.
 def home():
     error_message = request.args.get('error_message')  # Get the error message if available
@@ -81,22 +81,19 @@ def home():
         # If the token is not valid, the app generates an authorisation URL where the user can log in and grant permissions.
         return redirect(auth_url)
         # Redirects the user to the Spotify login page for authentication.
+    if request.method == "POST":
+        playlist_link = request.form.get("playlist_link")
 
-    return render_template_string("""
-        <h1>Enter Your Playlist Link</h1>
-        <form action="/process_playlist" method="post">
-            <label for="playlist_url">Spotify Playlist URL:</label><br>
-            <input type="text" id="playlist_url" name="playlist_url" required><br><br>
-            <input type="submit" value="Submit">
-        </form>
-        {% if error_message %}
-            <div style="color: red; border: 1px solid red; padding: 10px; margin-top: 10px;">
-                <strong>Error:</strong> {{ error_message }}
-            </div>
-        {% endif %}
-    """, error_message=error_message)
+        if not is_valid_playlist_link(playlist_link):  # Check if the link is valid
+            return redirect(url_for("home", error_message="Invalid playlist link! Please enter a valid one."))
 
-    # if the user is authenticated, the app renders an HTML form where the user can enter a Spotify playlist URL. If an error message exists, it’s displayed in a red box.
+    return render_template('home.html', error_message=error_message)
+# If the user is authenticated, the app renders an HTML form where the user can enter a Spotify playlist URL. If an error message exists, it’s displayed in a red box.
+
+# if the user is authenticated, the app renders an HTML form where the user can enter a Spotify playlist URL. If an error message exists, it’s displayed in a red box.
+def is_valid_playlist_link(link):
+    """Function to check if a playlist link is valid"""
+    return link.startswith("https://") and "playlist" in link  # Example validation
 
 @app.route('/process_playlist', methods=['POST'])
 def process_playlist():

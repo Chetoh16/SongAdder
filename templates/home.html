@@ -3,27 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Spotify Playlist Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin-top: 50px;
+        }
+        .card {
+            background-color: #1e1e1e;
+            color: white;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #1DB954;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #17a347;
+        }
+        a {
+            color: #1DB954;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h1>Song Processing Feedback</h1>
-    <h3>Added to Playlist:</h3>
-    <ul>
-        {% for track in added_tracks %}
-            <li>{{ track | safe }}</li>  <!-- Use 'safe' to render the HTML link correctly -->
-        {% endfor %}
-    </ul>
-    <h3>Could Not Be Found:</h3>
-    <ul>
-        {% for track in not_found_tracks %}
-            <li>{{ track }}</li>
-        {% endfor %}
-    </ul>
-    <h3>Skipped Songs:</h3>
-    <ul>
-        {% for track in skipped_tracks %}
-            <li>{{ track }}</li>
-        {% endfor %}
-    </ul>
+
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#">Spotify Playlist Manager</a>
+        <a href="/logout" class="btn btn-danger">Logout</a>
+    </div>
+</nav>
+
+<div class="container">
+    <h1 class="text-center">Enter Your Playlist Link</h1>
+    
+    <!-- Show error message if it exists -->
+    {% if error_message %}
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <strong>Error:</strong> {{ error_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <form action="/process_playlist" method="post" class="mt-4">
+        <label for="playlist_url" class="form-label">Spotify Playlist URL:</label>
+        <input type="text" id="playlist_url" name="playlist_url" class="form-control" required>
+        <button type="submit" class="btn btn-primary mt-3 w-100">Submit</button>
+    </form>
+</div>
+
+<div class="container mt-5">
+    <h2>Song Processing Feedback</h2>
+    
+    <div class="card mt-3">
+        <div class="card-body">
+            <h4>Added to Playlist:</h4>
+            <ul>
+                {% for track in added_tracks %}
+                <li>{{ track | safe }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h4>Could Not Be Found:</h4>
+            <ul>
+                {% for track in not_found_tracks %}
+                <li>{{ track }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h4>Skipped Songs:</h4>
+            <ul>
+                {% for track in skipped_tracks %}
+                <li>{{ track }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
