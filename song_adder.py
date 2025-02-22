@@ -101,6 +101,10 @@ def process_playlist():
     playlist_url = request.form['playlist_url']
     # Extracts the playlist URL from the form submission
    
+    allow_repeated_artists = request.form.get('allow_repeated_artists') == 'true'  # Capture the checkbox value as a boolean
+
+    # Capturing whether the checkbox was checked or not
+
     playlist_id = extract_playlist_id(playlist_url)
     # Calls a helper function extract_playlist_id() to extract the playlist ID from the URL.
 
@@ -108,7 +112,7 @@ def process_playlist():
         return redirect(url_for('home', error_message="Invalid Playlist URL. Please try again."))
     # If the playlist ID is invalid, the user is redirected back to the homepage with an error message.
     
-    tracks_info = search_and_add_songs_to_playlist(playlist_id)
+    tracks_info = search_and_add_songs_to_playlist(playlist_id, allow_repeated_artists)
     # Calls the search_and_add_songs_to_playlist() function to search for songs and add them to the specified playlist.
     
     # Return the feedback with all songs added, not found, and skipped
@@ -167,7 +171,7 @@ def extract_playlist_id(url):
     else:
         return None
 
-def search_and_add_songs_to_playlist(playlist_id):
+def search_and_add_songs_to_playlist(playlist_id,allow_repeated_artists):
     # A function that processes the playlist by searching for songs from a text file (list_of_songs.txt) and adding them to the playlist.
 
     added_tracks = []
@@ -234,7 +238,8 @@ def search_and_add_songs_to_playlist(playlist_id):
                     # If the track is already in the playlist, the song is skipped. The song's name and artist are added to the skipped_tracks set.
                 
                 #---------NEW----------#
-                elif any(artist['name'] in added_artists for artist in track['artists']):
+                # Check for repeated artists if checkbox was unchecked
+                elif not allow_repeated_artists and any(artist['name'] in added_artists for artist in track['artists']):
                     skipped_tracks.add(f"{track_name} by {artist_name} (Artist already in playlist)")
                 #---------NEW----------#
                 else:
